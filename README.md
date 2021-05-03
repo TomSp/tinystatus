@@ -7,9 +7,10 @@ tinystatus generate an html status page via shell script.
 * Parallel checks
 * HTTP, ping, port checks
 * HTTP expected status code (401, ...)
-* Minimal dependencies (curl, nc and coreutils)
+* Minimal dependencies (curl, nc and coreutils, iperf3)
 * Easy configuration and customisation
-* Incident history (manual)
+* Incident history (automated)
+* works on DD-WRT routers (add start.sh in your router-startup)
 
 ## Demo
 
@@ -36,6 +37,7 @@ Command can be:
 * `http` - Check http status
 * `ping` - Check ping status 
 * `port` - Check open port status
+* `iperf3` - Bandwith check
 
 There are also `http4`, `http6`, `ping4`, `ping6`, `port4`, `port6` for IPv4 or IPv6 only check.
 Note: `port4` and `port6` require OpenBSD `nc` binary.

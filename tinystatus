@@ -2,7 +2,9 @@
 
 title=tinystatus
 timeout=10
-tmp="$(mktemp -d)"
+abscript=$0 
+basedir=`dirname $abscript`
+tmp="${basedir}/tmp"
 checkfile="${1:-checks.csv}"
 incidentsfile="${2:-incidents.txt}"
 failonoutage=false
@@ -37,7 +39,20 @@ check(){
             error="$(nc -${IPv}w "${timeout}" -zv ${host} 2>&1)"
             statuscode=$?
             [ "${statuscode}" -ne "${expectedcode}" ] && echo "${error}" > "${tmp}/ko/${name}.error";;
-    esac
+        iperf*)
+           resultfile="${tmp}/$(echo ${name} | sed 's# #_#g').result"
+			for i in 1 2 3; 
+			do
+				echo "$(date) ${host}" > ${resultfile}
+				iperf3 -c "$(echo ${host}| cut -d: -f1)" -p $(echo ${host}| cut -d: -f2) -t 5 2>&1 | tail -n5 | head -n3 >> ${resultfile}
+				statuscode=$?
+				if [ "${statuscode}" -eq 0 ] && [ $(cat "${resultfile}" | wc -l) -gt 1 ] ; then
+					break;
+				fi
+				sleep 10
+			done
+			;;
+   esac
 
     # verity status and write files
     if [ "${statuscode}" -eq "${expectedcode}" ]; then
@@ -55,6 +70,8 @@ check(){
 command_exists 'curl'
 command_exists 'nc'
 command_exists 'ping'
+command_exists 'iperf3'
+
 mkdir -p "${tmp}/ok" "${tmp}/ko" || exit 1
 
 while IFS="$(printf '\n')" read -r line; do
@@ -85,7 +102,8 @@ li { list-style: none; margin-bottom: 2px; padding: 5px; border-bottom: 1px soli
 <div class='container'>
 <h1>Global status</h1>
 EOF
-outagenb="$(find "${tmp}/ko" -mindepth 1 | grep -c 'status$')"
+#outagenb="$(find "${tmp}/ko" -mindepth 1 | grep -c 'status$')"
+outagenb="$(find "${tmp}/ko" | grep -c 'status$')"
 if [ "${outagenb}" -ne 0 ]; then
     echo "<ul><li class='panel failed-bg'>${outagenb} Outage(s)</li></ul>"
 else
@@ -109,7 +127,21 @@ done
 cat << EOF
 </ul>
 <p class=small> Last check: $(date -I'seconds')</p>
+<h1>Speedtests</h1>
+<ul>
 EOF
+for file in "${tmp}/"*.result ; do
+	echo '<li><pre>'
+	#if [ $(cat "${file}" | wc -l) -gt 1 ] ; then
+		cat $file 
+		#| cut -c 36-  
+		#| sed 's|^\(.*\)$|<p>\1</p>|'
+#	else
+#		sed 's|^\(.*\)$|<p>\1</p>|' "${file}"
+#	fi
+	echo '</pre></li>'
+done
+echo '</ul>'
 if [ -f "${incidentsfile}" ]; then
     echo '<h1>Incidents</h1>'
     if [ -s "${incidentsfile}" ]; then
