@@ -1,6 +1,7 @@
 http,   200,  Google Website,         https://google.com
 http4,  200,  Google Website (IPv4),  https://google.com
 http,   404,  Google 404,             https://google.com/dummy
+http4,  404,  FluxFM Stream 80s,      https://sec-fluxfm.hoerradar.de
 ping,   0,    Google ping,            8.8.8.8
 iperf3, 0,    SpeedTest Duesseldorf,  speed.myloc.de:5200
 iperf3, 0,    SpeedTest Fremont,      iperf.scottlinux.com:5201
