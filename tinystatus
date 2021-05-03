@@ -1,10 +1,9 @@
 #!/usr/bin/env sh
 
 title=tinystatus
-timeout=10
-abscript=$0 
-basedir=`dirname $abscript`
-tmp="${basedir}/tmp"
+timeout=10 
+basedir=`pwd`
+tmp="${basedir}/t_tmp"
 checkfile="${1:-checks.csv}"
 incidentsfile="${2:-incidents.txt}"
 failonoutage=false
@@ -34,11 +33,11 @@ check(){
         ping*)
             ping -${IPv}W "${timeout}" -c 1 "${host}" >/dev/null 2>&1
             statuscode=$?
-            [ "${statuscode}" -ne "${expectedcode}" ] && echo 'Host unreachable' > "${tmp}/ko/${name}.error";;
+            [ "${statuscode}" -ne "${expectedcode}" ] && echo 'Ping ${host} unreachable' > "${tmp}/ko/${name}.error";;
         port*)
             error="$(nc -${IPv}w "${timeout}" -zv ${host} 2>&1)"
             statuscode=$?
-            [ "${statuscode}" -ne "${expectedcode}" ] && echo "${error}" > "${tmp}/ko/${name}.error";;
+            [ "${statuscode}" -ne "${expectedcode}" ] && echo "Port ${host} ${error}" > "${tmp}/ko/${name}.error";;
         iperf*)
            resultfile="${tmp}/$(echo ${name} | sed 's# #_#g').result"
 			for i in 1 2 3; 
@@ -47,8 +46,12 @@ check(){
 				iperf3 -c "$(echo ${host}| cut -d: -f1)" -p $(echo ${host}| cut -d: -f2) -t 5 2>&1 | tail -n5 | head -n3 >> ${resultfile}
 				statuscode=$?
 				if [ "${statuscode}" -eq 0 ] && [ $(cat "${resultfile}" | wc -l) -gt 1 ] ; then
+					if [ -s "${tmp}/ko/${name}.error" ]; then
+						rm "${tmp}/ko/${name}.error"
+					fi
 					break;
 				fi
+				echo "Error '${name}'" > "${tmp}/ko/${name}.error"
 				sleep 10
 			done
 			;;
@@ -64,6 +67,9 @@ check(){
         sed "${tmp}/ko/${name}.error" \
           -e 's,curl: ([0-9]*) ,,' \
           -e 's,.*) failed: ,,' > "${tmp}/ko/${name}.status"
+        echo "$(date) $(cat \"${tmp}/ko/${name}.error\" )" > "${incidentsfile}.new"
+        cat "${incidentsfile}" >> "${incidentsfile}.new"
+        mv "${incidentsfile}.new" "${incidentsfile}"
     fi
 }
 
@@ -132,13 +138,7 @@ cat << EOF
 EOF
 for file in "${tmp}/"*.result ; do
 	echo '<li><pre>'
-	#if [ $(cat "${file}" | wc -l) -gt 1 ] ; then
-		cat $file 
-		#| cut -c 36-  
-		#| sed 's|^\(.*\)$|<p>\1</p>|'
-#	else
-#		sed 's|^\(.*\)$|<p>\1</p>|' "${file}"
-#	fi
+	cat $file 	
 	echo '</pre></li>'
 done
 echo '</ul>'
