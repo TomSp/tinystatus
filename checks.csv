@@ -4,4 +4,7 @@ http,   404,  Google 404,             https://google.com/dummy
 http4,  404,  FluxFM Stream 80s,      https://sec-fluxfm.hoerradar.de
 http4,  200,  Zoom Web EU1,           https://eu01web.zoom.us
 ping,   0,    Google ping,            8.8.8.8
-iperf3, 0,    SpeedTest Duesseldorf,  speed.myloc.de:5200
+iperf,  0,    SpeedTest Duesseldorf,  speed.myloc.de:5200
+iperf-R,0,    SpeedTest Duesseldorf Rev,  speed.myloc.de:5200
+iperf,  0,    SpeedTest Hamburg,      speedtest.studiofunk.de:5200
+iperf-R,0,    SpeedTest Hamburg Rev,  speedtest.studiofunk.de:5200

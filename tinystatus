@@ -40,10 +40,15 @@ check(){
             [ "${statuscode}" -ne "${expectedcode}" ] && echo "Port ${host} ${error}" > "${tmp}/ko/${name}.error";;
         iperf*)
            resultfile="${tmp}/$(echo ${name} | sed 's# #_#g').result"
+           reverse="$(echo "${ctype}" | grep -o '[R]$')";
+           
+           if test "${reverse}" = "R" ; then
+				reverse=" -R"
+           fi
 			for i in 1 2 3; 
 			do
-				echo "$(date) ${host}" > ${resultfile}
-				iperf3 -c "$(echo ${host}| cut -d: -f1)" -p $(echo ${host}| cut -d: -f2) -t 5 2>&1 | tail -n5 | head -n3 >> ${resultfile}
+				echo "$(date) ${reverse} ${host}" >> ${resultfile}
+				iperf3 -4 -c "$(echo ${host}| cut -d: -f1)" -p $(echo ${host}| cut -d: -f2) -t 5 ${reverse} 2>&1 | tail -n5 | head -n3 >> ${resultfile}
 				statuscode=$?
 				if [ "${statuscode}" -eq 0 ] && [ $(cat "${resultfile}" | wc -l) -gt 1 ] ; then
 					if [ -s "${tmp}/ko/${name}.error" ]; then
@@ -52,7 +57,7 @@ check(){
 					break;
 				fi
 				echo "Error '${name}'" > "${tmp}/ko/${name}.error"
-				sleep 10
+				sleep 20
 			done
 			;;
    esac
@@ -88,7 +93,8 @@ while IFS="$(printf '\n')" read -r line; do
     code="$(get_element 2 "${line}")"
     name="$(get_element 3 "${line}")"
     host="$(get_element 4 "${line}")"
-    check "${ctype}" "${host}" "${name}" "${code}" &
+    check "${ctype}" "${host}" "${name}" "${code}" 
+    #&
 done < "${checkfile}"
 wait
 
