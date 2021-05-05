@@ -47,10 +47,10 @@ check(){
            fi
 			for i in 1 2 3; 
 			do
-				echo "$(date) ${reverse} ${host}" >> ${resultfile}
+				echo "$(date) ${reverse} ${host}" > ${resultfile}
 				iperf3 -4 -c "$(echo ${host}| cut -d: -f1)" -p $(echo ${host}| cut -d: -f2) -t 5 ${reverse} 2>&1 | tail -n5 | head -n3 >> ${resultfile}
 				statuscode=$?
-				if [ "${statuscode}" -eq 0 ] && [ $(cat "${resultfile}" | wc -l) -gt 1 ] ; then
+				if [ "${statuscode}" -eq 0 ] && [ $(cat "${resultfile}" | wc -l) -gt 2 ] ; then
 					if [ -s "${tmp}/ko/${name}.error" ]; then
 						rm "${tmp}/ko/${name}.error"
 					fi
