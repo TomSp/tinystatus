@@ -67,7 +67,10 @@ check(){
         sed "${tmp}/ko/${name}.error" \
           -e 's,curl: ([0-9]*) ,,' \
           -e 's,.*) failed: ,,' > "${tmp}/ko/${name}.status"
-        echo "$(date) $(cat \"${tmp}/ko/${name}.error\" )" > "${incidentsfile}.new"
+        
+        echo "$(date)" > "${incidentsfile}.new" 
+        cat "${tmp}/ko/${name}.error"  >> "${incidentsfile}.new"
+        echo "###############" >> "${incidentsfile}.new"
         cat "${incidentsfile}" >> "${incidentsfile}.new"
         mv "${incidentsfile}.new" "${incidentsfile}"
     fi
