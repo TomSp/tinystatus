@@ -9,9 +9,25 @@ incidentsfile="${2:-incidents.txt}"
 failonoutage=false
 useragent="User-Agent: Mozilla/5.0 (X11; Linux x86_64; Debian) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36"
 
+
+
+if [ -e ${basedir}/${title}.run ] ; then
+	PID=$(cat ${basedir}/${title}.run)
+	kill -0 $PID
+	statuscode=$?
+	if [ "${statuscode}" -eq 0 ] ; then
+		exit 1
+	else
+		rm ${basedir}/${title}.run
+	fi
+fi
+
+echo -n "$$" > ${basedir}/${title}.run
+
 command_exists(){
     if ! command -v "${1}" >/dev/null 2>&1; then
         echo >&2 "Error: ${1} missing. Please install it"
+        rm ${basedir}/${title}.run
         exit 1
     fi
 }
@@ -45,12 +61,12 @@ check(){
            if test "${reverse}" = "R" ; then
 				reverse=" -R"
            fi
-			for i in 1 2 3; 
+			echo "$(date) ${reverse} ${host}" > ${resultfile}
+			for i in 1 2 3 4 5; 
 			do
-				echo "$(date) ${reverse} ${host}" > ${resultfile}
 				iperf3 -4 -c "$(echo ${host}| cut -d: -f1)" -p $(echo ${host}| cut -d: -f2) -t 5 ${reverse} 2>&1 | tail -n5 | head -n3 >> ${resultfile}
 				statuscode=$?
-				if [ "${statuscode}" -eq 0 ] && [ $(cat "${resultfile}" | wc -l) -gt 2 ] ; then
+				if [ "${statuscode}" -eq 0 ] && [ $(cat "${resultfile}" | tail -n 1| grep 'iperf3: error' | wc -l) -eq 0 ] ; then
 					if [ -s "${tmp}/ko/${name}.error" ]; then
 						rm "${tmp}/ko/${name}.error"
 					fi
@@ -197,6 +213,8 @@ cat <<EOF
 EOF
 
 rm -r "${tmp}" 2>/dev/null
+rm ${basedir}/${title}.run
+
 if [ "${failonoutage}" = true ]; then
     exit "${outagenb}"
 fi
