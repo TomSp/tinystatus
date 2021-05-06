@@ -74,7 +74,7 @@ check(){
           -e 's,curl: ([0-9]*) ,,' \
           -e 's,.*) failed: ,,' > "${tmp}/ko/${name}.status"
         
-        echo "$(date)" > "${incidentsfile}.new" 
+        echo -n "$(date)    " > "${incidentsfile}.new" 
         cat "${tmp}/ko/${name}.error"  >> "${incidentsfile}.new"
         echo "###############" >> "${incidentsfile}.new"
         cat "${incidentsfile}" >> "${incidentsfile}.new"
@@ -184,7 +184,9 @@ echo '</ul>'
 if [ -f "${incidentsfile}" ]; then
     echo '<h1>Incidents</h1>'
     if [ -s "${incidentsfile}" ]; then
-        sed 's|^\(.*\)$|<p>\1</p>|' "${incidentsfile}"
+		echo '<ul><li><pre>'
+        sed 's+###############+</pre></li><li><pre>+' "${incidentsfile}"
+        echo '</pre></li></ul>'
     else
         echo '<p>No incident reported yet ;)</p>'
     fi
