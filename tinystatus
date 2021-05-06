@@ -57,6 +57,7 @@ check(){
 					break;
 				fi
 				echo "Error '${name}'" > "${tmp}/ko/${name}.error"
+				cat ${resultfile} >> "${tmp}/ko/${name}.error"
 				sleep 20
 			done
 			;;
