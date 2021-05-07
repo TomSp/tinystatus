@@ -51,7 +51,7 @@ check(){
 				if [ -s "${tmp}/ko/${name}.error" ]; then
 						rm "${tmp}/ko/${name}.error"
 				fi
-				break;;
+				break
 			fi
 			;;
         ping*)
