@@ -45,11 +45,19 @@ check(){
     IPv="$(echo "${ctype}" | grep -o '[46]$')"
     case "${ctype}" in
         http*)
-            statuscode="$(curl -${IPv}sSkLo /dev/null -H "${useragent}" -m "${timeout}" -w "%{http_code}" "${host}" 2> "${tmp}/ko/${name}.error")";;
+			echo "$(host)" > "${tmp}/ko/${name}.error"
+            statuscode="$(curl -${IPv}sSkLo /dev/null -H "${useragent}" -m "${timeout}" -w "%{http_code}" "${host}" 2>> "${tmp}/ko/${name}.error")" 
+            if [ "${statuscode}" -eq "${expectedcode}" ] ; then
+				if [ -s "${tmp}/ko/${name}.error" ]; then
+						rm "${tmp}/ko/${name}.error"
+				fi
+				break;;
+			fi
+			;;
         ping*)
             ping -${IPv}W "${timeout}" -c 1 "${host}" >/dev/null 2>&1
             statuscode=$?
-            [ "${statuscode}" -ne "${expectedcode}" ] && echo 'Ping ${host} unreachable' > "${tmp}/ko/${name}.error";;
+            [ "${statuscode}" -ne "${expectedcode}" ] && echo "Ping ${host} unreachable" > "${tmp}/ko/${name}.error";;
         port*)
             error="$(nc -${IPv}w "${timeout}" -zv ${host} 2>&1)"
             statuscode=$?
@@ -66,8 +74,8 @@ check(){
 			do
 				iperf3 -4 -c "$(echo ${host}| cut -d: -f1)" -p $(echo ${host}| cut -d: -f2) -t 5 ${reverse} 2>&1 | tail -n5 | head -n3 >> ${resultfile}
 				statuscode=$?
-				if [ "${statuscode}" -eq 0 ] && [ $(cat "${resultfile}" | tail -n 1| grep 'iperf3: error' | wc -l) -eq 0 ] ; then
-					if [ -s "${tmp}/ko/${name}.error" ]; then
+				if [ "${statuscode}" -eq "${expectedcode}" ] && [ $(cat "${resultfile}" | tail -n 1| grep 'iperf3: error' | wc -l) -eq 0 ] ; then
+					if [ -s "${tmp}/ko/${name}.error" ] ; then
 						rm "${tmp}/ko/${name}.error"
 					fi
 					break;
@@ -89,12 +97,13 @@ check(){
         sed "${tmp}/ko/${name}.error" \
           -e 's,curl: ([0-9]*) ,,' \
           -e 's,.*) failed: ,,' > "${tmp}/ko/${name}.status"
-        
-        echo -n "$(date)    " > "${incidentsfile}.new" 
+        if [ -s "${incidentsfile}.new" ] ; then
+			echo "" >> "${incidentsfile}.new" 
+        else
+			echo -n "$(date)    " > "${incidentsfile}.new" 
+		fi
         cat "${tmp}/ko/${name}.error"  >> "${incidentsfile}.new"
-        echo "###############" >> "${incidentsfile}.new"
-        cat "${incidentsfile}" >> "${incidentsfile}.new"
-        mv "${incidentsfile}.new" "${incidentsfile}"
+        
     fi
 }
 
@@ -114,6 +123,12 @@ while IFS="$(printf '\n')" read -r line; do
     #&
 done < "${checkfile}"
 wait
+
+if [ -s "${incidentsfile}.new" ] ; then
+	echo "###############" >> "${incidentsfile}.new"
+    cat "${incidentsfile}" >> "${incidentsfile}.new"
+    mv "${incidentsfile}.new" "${incidentsfile}"
+fi
 
 cat << EOF
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><title>${title}</title><style>
