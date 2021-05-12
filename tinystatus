@@ -115,10 +115,12 @@ mkdir -p "${tmp}/ok" "${tmp}/ko" || exit 1
 
 while IFS="$(printf '\n')" read -r line; do
     ctype="$(get_element 1 "${line}")"
-    code="$(get_element 2 "${line}")"
-    name="$(get_element 3 "${line}")"
-    host="$(get_element 4 "${line}")"
-    check "${ctype}" "${host}" "${name}" "${code}" 
+    if [[ ${ctype:0:1} != "#" ]] ; then
+		code="$(get_element 2 "${line}")"
+		name="$(get_element 3 "${line}")"
+		host="$(get_element 4 "${line}")"
+		check "${ctype}" "${host}" "${name}" "${code}" 
+	fi
     #&
 done < "${checkfile}"
 wait

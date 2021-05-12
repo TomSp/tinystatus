@@ -6,5 +6,5 @@ http4,  200,  Zoom Web EU1,           https://eu01web.zoom.us
 ping,   0,    Google ping,            8.8.8.8
 iperf,  0,    SpeedTest Duesseldorf,  speed.myloc.de:5200
 iperf-R,0,    SpeedTest Duesseldorf Rev,  speed.myloc.de:5200
-iperf,  0,    SpeedTest Hamburg,      speedtest.studiofunk.de:5200
-iperf-R,0,    SpeedTest Hamburg Rev,  speedtest.studiofunk.de:5200
+#iperf,  0,    SpeedTest Hamburg,      speedtest.studiofunk.de:5200
+#iperf-R,0,    SpeedTest Hamburg Rev,  speedtest.studiofunk.de:5200
