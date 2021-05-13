@@ -92,7 +92,7 @@ check(){
     else
         echo "Status code: ${statuscode}" > "${tmp}/ko/${name}.status"
     fi
-    if [ -s "${tmp}/ko/${name}.error" ]; then
+    if [ "${resultfile}" != "" ] && [ -s "${tmp}/ko/${name}.error" ]; then
         sed "${tmp}/ko/${name}.error" \
           -e 's,curl: ([0-9]*) ,,' \
           -e 's,.*) failed: ,,' > "${tmp}/ko/${name}.status"
